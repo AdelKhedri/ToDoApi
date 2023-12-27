@@ -4,7 +4,7 @@ from user.models import User
 
 class Comment(models.Model):
     message = models.TextField(max_length=300)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     
 
     class Meta:
