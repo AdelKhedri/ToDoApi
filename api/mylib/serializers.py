@@ -45,28 +45,22 @@ class UserSerializer(serializers.ModelSerializer):
 #         # if data['password'] != data['password2']:
 #             raise ValidationError('password1 not match with password2')
 
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(read_only=True)
+    id = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['message', 'author', 'id']
+
 
 class ListSerializer(serializers.ModelSerializer):
     slug = serializers.SlugField()
     created = serializers.DateTimeField(read_only=True)
     updated = serializers.DateTimeField(read_only=True)
     author = serializers.CharField(read_only=True)
+    comments = CommentSerializer(read_only=True, many=True)
 
     class Meta:
         model = ToDoList
         fields = ['title','color','priority','hashtags','comments','description','icon','items', 'slug', 'created', 'updated', 'author']
-
-
-# class CommentSerializer(serializers.ModelSerializer):
-#     sender = serializers.CharField(read_only=True)
-
-#     class Meta:
-#         model = Comment
-#         fields = ['message',]
-
-
-# class ItemSerializer(serializers.ModelSerializer):
-#     comments = CommentSerializer(many=True, read_onlay=True)
-#     class Meta:
-#         model = ToDoList
-#         fields = ['color','priority','hashtags','comments','description','icon', 'slug', 'created', 'updated', 'worker']
