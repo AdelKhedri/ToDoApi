@@ -45,11 +45,12 @@ class ToDo(models.Model):
 
 
 class ToDoItem(ToDo):
-    start = models.DateTimeField(blank=True)
-    end = models.DateTimeField(blank=True)
+    start = models.DateTimeField(blank=True, null=True)
+    end = models.DateTimeField(blank=True, null=True)
     completed = models.BooleanField(default=False)
     icon = models.ImageField(upload_to='list/images/', null=True, blank=True)
     worker = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='worker')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author_item')
 
     def __str__(self):
         return self.description
@@ -65,7 +66,7 @@ class ToDoList(ToDo):
     icon = models.ImageField(upload_to='list/images/', null=True, blank=True)
     point = models.FloatField(default=0)
     items = models.ManyToManyField(ToDoItem, blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author_list')
     
     def __str__(self):
         return self.title
