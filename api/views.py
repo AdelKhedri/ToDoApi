@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework.generics import CreateAPIView, ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, DestroyAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication,BasicAuthentication
-from .mylib.serializers import UserSerializer, ListSerializer, CommentSerializer
+from .mylib.serializers import UserSerializer, ListSerializer, CommentSerializer, ItemSerializer
 from .mylib.permissions import IsAuthenticated, IsAuthenticatedAuthor
 from .mylib.filters import ToDoListFilter
 from .mylib.paginations import CustomPagination
@@ -50,7 +50,7 @@ class ListManagerApi(RetrieveUpdateDestroyAPIView):
     queryset = ToDoList
 
 
-class CreateCommentApi(CreateAPIView):
+class CreateCommentListApi(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated,] # for all users
     authentication_classes = [TokenAuthentication]
@@ -82,3 +82,51 @@ class DeleteCommentApi(DestroyAPIView):
     permission_classes = [IsAuthenticatedAuthor,]
     authentication_classes = [TokenAuthentication]
     queryset = Comment
+
+
+
+class CreateItemApi(CreateAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = [IsAuthenticated,]
+    authentication_classes = [TokenAuthentication]
+    queryset = ToDoItem
+
+
+    def perform_create(self, serializer):
+        serializer.save()
+        item_instance= serializer.instance
+        list = get_object_or_404(ToDoList, pk=self.kwargs['pk'])
+        list.items.add(item_instance)
+        list.save()
+
+
+class CreateCommentItemApi(CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+        comment_instance = serializer.instance
+        item = get_object_or_404(ToDoItem, pk=self.kwargs['pk'])
+        item.comments.add(comment_instance)
+        item.save()
+    
+
+    def check_permissions(self, request):
+        for permission in self.get_permissions():
+            if not permission.has_permission(request, self):
+                self.permission_denied(request)
+            user = request.user
+            item_instance = get_object_or_404(ToDoItem, pk=self.kwargs['pk'])
+            if user != item_instance.author and user != item_instance.author:
+                self.permission_denied(request)
+
+
+
+class ItemManagerApi(RetrieveUpdateDestroyAPIView):
+    serializer_class = ItemSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticatedAuthor]
+    queryset = ToDoItem
